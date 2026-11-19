@@ -97,6 +97,10 @@ extern char *progname, *sockname;
 extern int detach_char, no_suspend, redraw_method;
 extern struct termios orig_term;
 extern int dont_have_tty;
+#ifdef _WIN32
+/* WIN32: the full original argv, re-used to re-exec ourselves as master. */
+extern char **win32_argv;
+#endif
 
 enum
 {

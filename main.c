@@ -44,6 +44,9 @@ int redraw_method = REDRAW_UNSPEC;
 */
 struct termios orig_term;
 int dont_have_tty;
+#ifdef _WIN32
+char **win32_argv;
+#endif
 
 /* Write buf to fd handling partial writes. Exit on failure. */
 void
@@ -133,6 +136,9 @@ main(int argc, char **argv)
 
 	/* Save the program name */
 	progname = argv[0];
+#ifdef _WIN32
+	win32_argv = argv;
+#endif
 	++argv; --argc;
 
 	/* Parse the arguments */
@@ -275,6 +281,16 @@ main(int argc, char **argv)
 		       progname);
 		return 1;
 	}
+
+#ifdef _WIN32
+	/* WIN32: we are the detached master that a dtach client re-executed
+	** instead of fork()ing (see master_main). No terminal, just serve. */
+	if (compat_daemon_role())
+	{
+		dont_have_tty = 1;
+		return master_main(argv, mode == 'c' || mode == 'A', 0);
+	}
+#endif
 
 	/* Save the original terminal settings. */
 	if (tcgetattr(0, &orig_term) < 0)
